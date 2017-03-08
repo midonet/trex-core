@@ -89,6 +89,13 @@ def uplink_stream(stream_id,
                      flow_stats = STLFlowLatencyStats(
                          pg_id = stream_id))
 
+
+# Note: MidoNet flowstate SBE schema uses a non-standard encoding of UUIDs.
+def midonet_uuid_bytes(id):
+    b = id.bytes
+    return b[7::-1] + b[:7:-1]
+
+
 def flowstate_stream(gateway_count,
                      trex_underlay_mac,
                      agent_underlay_mac,
@@ -115,7 +122,7 @@ def flowstate_stream(gateway_count,
                                      + 'b0000450000100000100001ce46ae37ede90e4b128f5dd96bc44b9f'
                                      + '100001f04c2f9bfbc04b94da10477caae64c97')
         portid = uuid.UUID(agent_uplink_port_uuid) # uplink on gateway
-        payload = payload[:0x5e] + portid.bytes_le + payload[0x6e:]
+        payload = payload[:0x5e] + midonet_uuid_bytes(portid) + payload[0x6e:]
         vm = STLScVmRaw( [ STLVmFlowVar(name="key_ip_src",
                                         min_value="10.0.0.1",
                                         max_value="10.254.254.254",
